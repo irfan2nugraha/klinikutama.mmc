@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klinik Utama MMC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Variabel CSS untuk skema warna hijau utama klinik */
+        :root {
+            --primary-green: #4CAF50; /* Warna hijau utama dari PDF */
+            --dark-green: #2E8B57; /* Warna hijau yang lebih gelap untuk aksen */
+            --light-green: #D4EDDA; /* Warna hijau muda untuk latar belakang */
+            --accent-yellow: #FFD700; /* Warna kuning sebagai aksen yang ramah */
+        }
+
+        /* Gaya dasar untuk body dan font */
+        body {
+            font-family: 'Inter', sans-serif; /* Menggunakan font Inter untuk tampilan modern */
+            background-color: #F0FFF0; /* Latar belakang hijau honeydew yang elegan dan cerah */
+            color: #333; /* Warna teks gelap agar mudah dibaca */
+        }
+
+        /* Kelas utilitas Tailwind kustom untuk warna */
+        .bg-primary-green { background-color: var(--primary-green); }
+        .text-primary-green { color: var(--primary-green); }
+        .hover\:bg-dark-green:hover { background-color: var(--dark-green); }
+        .border-primary-green { border-color: var(--primary-green); }
+        .bg-accent-yellow { background-color: var(--accent-yellow); }
+        .text-accent-yellow { color: var(--accent-yellow); }
+
+        /* Menyembunyikan semua bagian halaman secara default untuk navigasi berbasis JS */
+        .page-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out; /* Transisi halus saat muncul */
+            background-color: #E6FAE6; /* Latar belakang hijau yang lebih menonjol untuk setiap bagian halaman */
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-lg */
+            margin-bottom: 2rem; /* mb-8 */
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 80rem; /* max-w-7xl */
+            padding: 2rem; /* p-8 */
+
+            /* Menambahkan motif segitiga dengan warna cerah yang cocok */
+            background-image:
+                linear-gradient(45deg, var(--light-green) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--light-green) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--light-green) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--light-green) 75%);
+            background-size: 30px 30px; /* Ukuran motif yang berulang */
+            background-position: 0 0, 15px 0, 15px 15px, 0 15px; /* Offset untuk penataan motif */
+            background-repeat: repeat;
+        }
+
+        /* Menampilkan bagian halaman yang aktif */
+        .page-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Gaya khusus untuk bagian Hero (Beranda) */
+        .hero-section {
+            background-image: url("WhatsApp\ Image\ 2025-07-23\ at\ 13.36.56_850e95c0.jpg"); /* Placeholder image, replace with actual */
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Shadow teks agar lebih terbaca */
+            /* Overriding page-section pattern for hero image clarity */
+            background-image: url("WhatsApp\ Image\ 2025-07-23\ at\ 13.36.56_850e95c0.jpg");
+            background-color: transparent; /* Ensure base color doesn't interfere */
+        }
+        .hero-overlay {
+            background-color: rgba(0, 0, 0, 0.5); /* Overlay gelap untuk keterbacaan teks */
+        }
+
+        /* Gaya khusus untuk slider galeri */
+        .slider-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.75rem; /* rounded-xl */
+        }
+
+        .slider-wrapper {
+            display: flex;
+            transition: transform 0.5s ease-in-out; /* Transisi halus antar slide */
+        }
+
+        .slider-item {
+            min-width: 100%; /* Setiap item slider mengambil 100% lebar container */
+            box-sizing: border-box;
+        }
+
+        .slider-nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5); /* Latar belakang tombol semi-transparan */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px; /* rounded-full */
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease;
+        }
+
+        .slider-nav-button:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .slider-nav-button.prev {
+            left: 1rem;
+        }
+
+        .slider-nav-button.next {
+            right: 1rem;
+        }
+
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .slider-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 9999px; /* rounded-full */
+            margin: 0 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .slider-dot.active {
+            background-color: var(--primary-green); /* Dot aktif berwarna hijau utama */
+        }
+        .slider-dot:hover {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Efek hover untuk kartu layanan, fasilitas, dll. */
+        .service-card, .facility-card, .benefit-card, .doctor-card, .testimonial-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .service-card:hover, .facility-card:hover, .benefit-card:hover, .doctor-card:hover, .testimonial-card:hover {
+            transform: translateY(-5px); /* Sedikit naik saat di-hover */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Efek bayangan yang lebih menonjol */
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <header class="bg-primary-green text-white p-4 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                <img src="1 (1).jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/D4EDDA/4CAF50?text=Logo';" alt="Logo Klinik Mahesa" class="h-16 w-16 rounded-full object-contain">
+                <div>
+                    <h1 class="text-2xl font-bold">Klinik Utama</h1>
+                    <p class="text-xl font-bold">MMC</p>
+                </div>
+            </div>
+            <nav>
+                <ul class="flex flex-wrap justify-center md:space-x-6 space-x-3 text-lg">
+                    <li><a href="#beranda" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="beranda">Beranda</a></li>
+                    <li><a href="#tentang" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="tentang">Tentang Kami</a></li>
+                    <li><a href="#layanan" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="layanan">Layanan</a></li>
+                    <li><a href="#dokter" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="dokter">Dokter Kami</a></li>
+                    <li><a href="#fasilitas" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="fasilitas">Fasilitas</a></li>
+                    <li><a href="#galeri" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="galeri">Galeri</a></li>
+                    <li><a href="#pendaftaran" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="pendaftaran">Pendaftaran</a></li>
+                    <li><a href="#testimoni" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="testimoni">Testimoni</a></li>
+                    <li><a href="#struktur-organisasi" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="struktur-organisasi">Struktur Organisasi</a></li>
+                    <li><a href="#operasional" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="operasional">Jam & Alur Layanan</a></li>
+                    <li><a href="#antrian-online" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="antrian-online">Antrian Online</a></li>
+                    <li><a href="#kontak" class="hover:underline p-2 rounded-md transition duration-300 nav-link" data-target="kontak">Kontak</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="w-full p-6 mt-8">
+        <section id="beranda" class="page-section active hero-section relative h-screen flex items-center justify-center text-center">
+            <div class="hero-overlay absolute inset-0 rounded-xl"></div>
+            <div class="relative z-10 p-8">
+                <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-6 animate-fade-in-up">
+                    KLINIK UTAMA <br> MAHESA MEDICAL CENTER 
+                </h2>
+                <p class="text-xl md:text-2xl leading-relaxed mb-8 animate-fade-in-up delay-200">
+                    Spesialis Penyakit Dalam & Bedah —
+                    Profesional, Peduli, Terpercaya
+                </p>
+                <!-- Tombol "Daftar Sekarang untuk Pelayanan Terbaik" -->
+                <a href="#pendaftaran" class="inline-block bg-dark-green text-white px-8 py-4 rounded-full text-xl font-semibold hover:bg-primary-green transition duration-300 shadow-lg transform hover:scale-105 animate-fade-in-up delay-400 nav-link" data-target="pendaftaran">
+                    Daftar Sekarang untuk Pelayanan Terbaik
+                </a>
+            </div>
+        </section>
+
+        <section id="mengapa-memilih-kami" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-10 text-center">Mengapa Memilih Klinik Kami?</h2>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="benefit-card bg-light-green p-6 rounded-lg shadow-md">
+                    <i class="fas fa-hand-holding-heart text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Pelayanan Berbasis Mutu</h3>
+                    <p class="text-gray-700">Kami berkomitmen pada standar pelayanan tertinggi untuk kepuasan dan keselamatan Anda, didukung oleh akreditasi PARIPURNA LAFKI.</p>
+                </div>
+                <div class="benefit-card bg-light-green p-6 rounded-lg shadow-md">
+                    <i class="fas fa-user-nurse text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Tim Medis Profesional</h3>
+                    <p class="text-gray-700">Didukung oleh tim dokter spesialis dan umum serta staf medis berpengalaman dan berdedikasi yang siap melayani Anda.</p>
+                </div>
+                <div class="benefit-card bg-light-green p-6 rounded-lg shadow-md">
+                    <i class="fas fa-hospital text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Fasilitas Lengkap & Modern</h3>
+                    <p class="text-gray-700">Dari rawat jalan hingga rawat inap, kami menyediakan fasilitas medis modern dan nyaman untuk mendukung proses penyembuhan Anda.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="tentang" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Tentang Kami</h2>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="mb-8 md:mb-0">
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-4">Sejarah Kami</h3>
+                    <p class="text-lg leading-relaxed">
+                        Klinik Utama Mahesa Medical Center merupakan sebuah Klinik Kesehatan dengan Layanan Rawat Jalan dan Rawat Inap yang terletak di Jalan Cimanuk No. 08 Desa Sukagalih Kecamatan Tarogong Kidul Kabupaten Garut - Jawa Barat. Klinik Mahesa Medical Center berdiri pada tahun 2009, berawal dari Balai Pengobatan dan pada tahun 2011 berubah menjadi Klinik Utama Mahesa Medical Center.
+                    </p>
+                </div>
+                <div>
+                    <img src="—Pngtree—illustration of a medical team_10523719.png" onerror="this.onerror=null;this.src='https://placehold.co/600x400/D4EDDA/4CAF50?text=Sejarah+Klinik';" alt="Sejarah Klinik" class="rounded-xl shadow-lg w-full h-auto object-cover">
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 mt-8">
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-4">Visi Kami</h3>
+                    <p class="text-lg leading-relaxed p-4 bg-light-green rounded-lg shadow-sm">
+                        Terwujudnya Klinik Yang Berkualitas Dan Terpercaya Memiliki Keunggulan Yang Kompetitif.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-4">Misi Kami</h3>
+                    <ul class="list-disc list-inside text-lg leading-relaxed space-y-2 p-4 bg-light-green rounded-lg shadow-sm">
+                        <li>Melaksanakan Pelayanan Kesehatan Yang Mengutamakan Keselamatan Dan Mutu Serta Berfokus Pada Masyarakat Dalam Menyehatkan Rohani Dan Jasmani Sebagai Tujuan Ibadah.</li>
+                        <li>Menjaga Amanah Dalam Bekerja Dalam Memberikan Pelayanan Yang Terbaik.</li>
+                        <li>Menebar Kemanfaatan Dalam Senantiasa Menghadirkan Ketulusan Dan Keikhlasan Dalam Melayani Pasien.</li>
+                        <li>Meningkatkan Kapasitas SDM Dalam Pembelajaran Yang Berkelanjutan.</li>
+                        <li>Menjaga Keharmonisan Untuk Mencapai Kepuasan Layanan.</li>
+                        <li>Mencapai Kemandirian Finansial Melalui Pemberdayaan Aset Dan Kolaborasi Yang Optimal Serta Mampu Menjangkau Semua Lapisan Masyarakat.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="layanan" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Layanan Utama Kami</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-user-md text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Poli Umum</h3>
+                    <p class="text-gray-700">Konsultasi, pemeriksaan, dan penanganan kesehatan dasar untuk berbagai keluhan oleh dokter umum berpengalaman.</p>
+                </div>
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-heartbeat text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Poli Penyakit Dalam</h3>
+                    <p class="text-gray-700">Diagnosis dan penanganan komprehensif untuk berbagai penyakit internal oleh dokter spesialis penyakit dalam.</p>
+                </div>
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-cut text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Poli Bedah</h3>
+                    <p class="text-gray-700">Layanan bedah umum dan tindakan minor oleh dokter spesialis bedah yang kompeten.</p>
+                </div>
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-hand-holding-medical text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Poli Akupunktur</h3>
+                    <p class="text-gray-700">Terapi akupunktur sebagai metode pengobatan komplementer untuk membantu mengatasi berbagai kondisi kesehatan.</p>
+                </div>
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-x-ray text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Radiologi</h3>
+                    <p class="text-700">Pemeriksaan pencitraan diagnostik canggih seperti X-ray untuk mendukung diagnosis yang akurat.</p>
+                </div>
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-flask text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">Laboratorium</h3>
+                    <p class="text-gray-700">Menyediakan berbagai jenis pemeriksaan laboratorium klinis yang akurat dan cepat untuk mendukung diagnosis dan pemantauan kesehatan.</p>
+                </div>
+                <div class="service-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <i class="fas fa-ambulance & fa-capsules text-5xl text-primary-green mb-4"></i>
+                    <h3 class="text-xl font-semibold mb-2">UGD & Farmasi 24 Jam</h3>
+                    <p class="text-gray-700">Pelayanan gawat darurat yang siap sedia 24 jam sehari, 7 hari seminggu, dengan tim medis yang sigap dan fasilitas lengkap.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="dokter" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Tim Dokter Profesional Kami</h2>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="WhatsApp Image 2025-07-24 at 07.49.28_23e6826d.jpg" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+1';" alt="DR. dr. H. Tito Apriana,Sp.B,,Finacs.,MMRS" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">DR. dr. H. Tito Apriana,Sp.B,,Finacs.,MMRS</h3>
+                    <p class="text-primary-green font-medium">Dokter Spesialis Bedah</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="WhatsApp Image 2025-07-24 at 07.49.28_c60e1b69.jpg" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+2';" alt="dr. Hj. Shelvi Febrianti,Sp.PD" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. Hj. Shelvi Febrianti,Sp.PD</h3>
+                    <p class="text-primary-green font-medium">Dokter Spesialis Penyakit Dalam</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="WhatsApp Image 2025-07-24 at 07.25.40_36e35572.jpg" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+3';" alt="dr. H. Usep. S. A, Sp.Rad." class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. H. Usep. S. A, Sp.Rad.</h3>
+                    <p class="text-primary-green font-medium">Dokter Spesialis Radiologi</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="WhatsApp Image 2025-07-24 at 07.25.41_d38f9cf9.jpg" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+4';" alt="dr. Lindawati Nilandari" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. Lindawati Nilandari</h3>
+                    <p class="text-primary-green font-medium">Dokter Akupunktur</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="WhatsApp Image 2025-07-24 at 07.25.42_ea412c67.jpg" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+5';" alt="drg. Novi Dewandari" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">drg. Novi Dewandari</h3>
+                    <p class="text-primary-green font-medium">Dokter Gigi</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="04beac15-3d95-455d-a5b0-6c3b9b423d05.png" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+6';" alt="dr. Dedeh Jubaedah, MM., FIHFAA., FISQua" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. Dedeh Jubaedah, MM., FIHFAA., FISQua</h3>
+                    <p class="text-primary-green font-medium">Dokter Umum</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="WhatsApp Image 2025-07-24 at 07.25.42_76f42507.jpg" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+7';" alt="dr. Helen Sandriyanti" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. Helen Sandriyanti</h3>
+                    <p class="text-primary-green font-medium">Dokter Umum</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="7e034c63-353e-473f-ac82-a57b57e7e14e.png" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+8';" alt="dr. Putri Nur'afni Sa'adah" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. Putri Nur'afni Sa'adah</h3>
+                    <p class="text-primary-green font-medium">Dokter Umum</p>
+                </div>
+                <div class="doctor-card bg-light-green p-6 rounded-lg shadow-md text-center">
+                    <img src="832c37cf-229c-42cd-b7ca-fb9b5442a184.png" onerror="this.onerror=null;this.src='https://placehold.co/300x300/D4EDDA/4CAF50?text=Dokter+9';" alt="dr. Syaffira Syandravhirana" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover">
+                    <h3 class="text-xl font-semibold mb-1">dr. Syaffira Syandravhirana</h3>
+                    <p class="text-primary-green font-medium">Dokter Umum</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="fasilitas" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Fasilitas Pelayanan Kami</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-cash-register text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Pendaftaran & Kasir</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-ambulance & fa-pills text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Unit Gawat Darurat (UGD)</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-chair text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Tunggu Pasien yang Nyaman</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-flask text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Laboratorium Modern</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-clinic-medical text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Poli Spesialis</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-comments text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Rapat</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-hospital-user text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Poli Umum</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-bed text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Rawat Inap</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-star text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Rawat Inap VIP</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-hand-sparkles text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Akupuntur</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-heartbeat text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang EKG</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-prescription-bottle-alt text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Instalasi Farmasi</p>
+                </div>
+                <div class="facility-card bg-light-green p-6 rounded-lg shadow-md flex items-center space-x-4">
+                    <i class="fas fa-x-ray text-4xl text-primary-green"></i>
+                    <p class="text-lg font-semibold">Ruang Radiologi</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="galeri" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Jelajahi Galeri Kami</h2>
+            <div class="slider-container relative w-full">
+                <div class="slider-wrapper">
+                    <div class="slider-item">
+                        <img src="WhatsApp Image 2025-07-28 at 12.24.25_29dddab8.jpg" onerror="this.onerror=null;this.src='https://placehold.co/800x450/D4EDDA/4CAF50?text=Galeri+Klinik+1';" alt="Galeri Klinik 1" class="w-full h-auto rounded-xl shadow-md object-cover">
+                    </div>
+                    <div class="slider-item">
+                        <img src="WhatsApp Image 2025-07-28 at 12.24.25_433f8b6c.jpg" onerror="this.onerror=null;this.src='https://placehold.co/800x450/D4EDDA/4CAF50?text=Galeri+Klinik+2';" alt="Galeri Klinik 2" class="w-full h-auto rounded-xl shadow-md object-cover">
+                    </div>
+                    <div class="slider-item">
+                        <img src="WhatsApp Image 2025-07-28 at 12.24.25_f3812544.jpg" onerror="this.onerror=null;this.src='https://placehold.co/800x450/D4EDDA/4CAF50?text=Galeri+Klinik+3';" alt="Galeri Klinik 3" class="w-full h-auto rounded-xl shadow-md object-cover">
+                    </div>
+                    <div class="slider-item">
+                        <img src="WhatsApp Image 2025-07-28 at 12.24.26_71389e29.jpg" onerror="this.onerror=null;this.src='https://placehold.co/800x450/D4EDDA/4CAF50?text=Galeri+Klinik+4';" alt="Galeri Klinik 4" class="w-full h-auto rounded-xl shadow-md object-cover">
+                    </div>
+                    <div class="slider-item">
+                        <img src="WhatsApp Image 2025-07-23 at 13.36.56_850e95c0.jpg" onerror="this.onerror=null;this.src='https://placehold.co/800x450/D4EDDA/4CAF50?text=Galeri+Klinik+5';" alt="Galeri Klinik 5" class="w-full h-auto rounded-xl shadow-md object-cover">
+                    </div>
+                </div>
+                <button class="slider-nav-button prev"><i class="fas fa-chevron-left"></i></button>
+                <button class="slider-nav-button next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="slider-dots"></div>
+        </section>
+
+        <section id="pendaftaran" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Daftar Sekarang untuk Pelayanan Mudah</h2>
+            <form id="registrationForm" class="w-full space-y-4 p-6 bg-light-green rounded-lg shadow-inner">
+                <div>
+                    <label for="nama" class="block text-lg font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama" name="nama" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                </div>
+                <div>
+                    <label for="nik" class="block text-lg font-medium text-gray-700 mb-1">Nomor Induk Kewarganegaraan <span class="text-red-500">*</span></label>
+                    <input type="text" id="nik" name="nik" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                </div>
+                <div>
+                    <label for="email" class="block text-lg font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                    <input type="email" id="email" name="email" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                </div>
+                <div>
+                    <label for="telepon" class="block text-lg font-medium text-gray-700 mb-1">Nomor Telepon <span class="text-red-500">*</span></label>
+                    <input type="tel" id="telepon" name="telepon" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                </div>
+                <div>
+                    <label for="tanggal_lahir" class="block text-lg font-medium text-gray-700 mb-1">Tanggal Lahir <span class="text-red-500">*</span></label>
+                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                </div>
+                <div>
+                    <label for="poli" class="block text-lg font-medium text-gray-700 mb-1">Poli yang Dituju <span class="text-red-500">*</span></label>
+                    <select id="poli" name="poli" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                        <option value="">Pilih Poli</option>
+                        <option value="Poli Umum">Poli Umum</option>
+                        <option value="Poli Penyakit Dalam">Poli Penyakit Dalam</option>
+                        <option value="Poli Bedah">Poli Bedah</option>
+                        <option value="Poli Akupunktur">Poli Akupunktur</option>
+                        <option value="Radiologi">Radiologi</option>
+                        <option value="Laboratorium">Laboratorium</option>
+                        <option value="UGD & Farmasi">UDG & Farmasi 24 Jam</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="pesan" class="block text-lg font-medium text-gray-700 mb-1">Pesan Tambahan (Opsional)</label>
+                    <textarea id="pesan" name="pesan" rows="4" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-primary-green text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-dark-green transition duration-300 shadow-md transform hover:scale-105">Kirim Pendaftaran</button>
+            </form>
+            <p class="text-center text-sm text-gray-600 mt-4"> *Catatan: Formulir ini adalah contoh frontend. Untuk fungsionalitas pengiriman data, Anda memerlukan layanan backend (misalnya, Netlify Forms atau Netlify Functions). </p>
+        </section>
+
+        <section id="testimoni" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Apa Kata Pasien Kami?</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="testimonial-card bg-light-green p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="text-accent-yellow text-2xl mr-2">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <span class="font-semibold text-gray-700">5.0 Bintang</span>
+                    </div>
+                    <p class="text-gray-800 italic mb-4"> "Pelayanan di Klinik Mahesa sangat baik, dokternya ramah dan jelas dalam menjelaskan. Perawatnya juga sangat sigap. Tempatnya bersih dan nyaman. Sangat direkomendasikan untuk berobat di sini." </p>
+                    <p class="text-right font-semibold text-primary-green">- Ibu Rina S</p>
+                </div>
+                <div class="testimonial-card bg-light-green p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="text-accent-yellow text-2xl mr-2">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="font-semibold text-gray-700">4.5 Bintang</span>
+                    </div>
+                    <p class="text-gray-800 italic mb-4"> "Fasilitasnya cukup lengkap, ada IGD 24 jam yang sangat membantu. Antrian kadang agak lama di jam sibuk, tapi secara keseluruhan pelayanannya memuaskan. Terima kasih!" </p>
+                    <p class="text-right font-semibold text-primary-green">- Bapak Doni P</p>
+                </div>
+                <div class="testimonial-card bg-light-green p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="text-accent-yellow text-2xl mr-2">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+                        </div>
+                        <span class="font-semibold text-gray-700">4.0 Bintang</span>
+                    </div>
+                    <p class="text-gray-800 italic mb-4"> "Poli penyakit dalamnya bagus, dokternya komunikatif. Hanya saja, petunjuk arah di dalam klinik bisa lebih jelas. Parkir juga kadang sulit. Tapi untuk kualitas medis, top!" </p>
+                    <p class="text-right font-semibold text-primary-green">- Ibu Lia K</p>
+                </div>
+                <div class="testimonial-card bg-light-green p-6 rounded-lg shadow-md">
+                    <div class="flex items-center mb-4">
+                        <div class="text-accent-yellow text-2xl mr-2">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                        <span class="font-semibold text-gray-700">5.0 Bintang</span>
+                    </div>
+                    <p class="text-gray-800 italic mb-4"> "Pertama kali ke sini untuk cek lab, hasilnya cepat dan akurat. Petugas labnya ramah dan cekatan. Lingkungan klinik juga bersih dan nyaman. Sangat puas!" </p>
+                    <p class="text-right font-semibold text-primary-green">- Bapak Andi M</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Struktur Organisasi Section -->
+        <section id="struktur-organisasi" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Struktur Organisasi Klinik Utama Mahesa Medical Center</h2>
+            <div class="max-w-3xl mx-auto text-lg leading-relaxed">
+                <div class="mb-6 p-4 bg-light-green rounded-lg shadow-sm">
+                    <h3 class="font-semibold text-xl text-primary-green mb-2">Pemilik Klinik</h3>
+                    <p>YAYASAN NURUSSOBAH AL JALIL</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="p-4 bg-light-green rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-xl text-primary-green mb-2">Pengawas</h3>
+                        <p>dr. Ina Aulia</p>
+                    </div>
+                    <div class="p-4 bg-light-green rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-xl text-primary-green mb-2">Penanggung Jawab Klinik</h3>
+                        <p>dr. Dedeh Jubaedah, MM., FIHFAA., FISQua</p>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-light-green rounded-lg shadow-sm mb-6">
+                    <h3 class="font-semibold text-xl text-primary-green mb-2">Penasehat</h3>
+                    <p>DR. dr. H. Tito Apriana,Sp.B,,Finacs.,MMRS</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-light-green rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-xl text-primary-green mb-2">Administrasi & Manajemen</h3>
+                        <p>Irfan Dwi Nugraha</p>
+                    </div>
+                    <div class="p-4 bg-light-green rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-xl text-primary-green mb-2">Keuangan</h3>
+                        <p>Rika Nurmalasari</p>
+                        <p>Fitriawati</p>
+                    </div>
+                    <div class="p-4 bg-light-green rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-xl text-primary-green mb-2">Medis</h3>
+                        <p>DR. dr. H. Tito Apriana,Sp.B,,Finacs.,MMRS</p>
+                        <p>dr. Hj. Shelvi Febrianti,Sp.PD</p>
+                        <p>dr. H. Usep. S. A, Sp.Rad.</p>
+                        <p>dr. Lindawati Nilandari</p>
+                        <p>drg. Novi Dewandari</p>
+                        <p>dr. Dedeh Jubaedah, MM., FIHFAA., FISQua</p>
+                        <p>dr. Helen Sandriyanti</p>
+                        <p>dr. Putri Nur'afni Sa'adah</p>
+                        <p>dr. Syaffira Syandravhirana</p>
+                    </div>
+                    <div class="p-4 bg-light-green rounded-lg shadow-sm">
+                        <h3 class="font-semibold text-xl text-primary-green mb-2">Penunjang Medis</h3>
+                        <p>Laboratorium</p>
+                        <p>Farmasi</p>
+                        <p>Gizi</p>
+                        <p>Gawat Darurat</p>
+                        <p>Konseling Medik</p>
+                        <p>Pelayanan KB</p>
+                        <p>Rujukan</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="operasional" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Jam & Alur Layanan</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-4">Jam Operasional Klinik</h3>
+                    <ul class="list-disc list-inside text-lg leading-relaxed space-y-2 p-4 bg-light-green rounded-lg shadow-sm">
+                        <li><strong>Poli Umum:</strong> Buka 24 Jam </li>
+                        <li><strong>Poli Spesialis:</strong> Senin - Jumat, 08.00 - 18.00 WIB</li>
+                        <li><strong>Unit Gawat Darurat (UGD) & Farmasi:</strong> Buka 24 Jam</li>
+                        <li><strong>Laboratorium:</strong> Senin - Sabtu, 08.00 - 18.00 WIB</li>
+                        <li><strong>Imunisasi dasar bayi & balita:</strong> Senin - Jumat, 09.00 - 12.00 WIB</li>
+                    </ul>
+                    <p class="text-sm text-gray-600 mt-4 italic">Jam operasional dapat berubah sewaktu-waktu. Mohon konfirmasi jadwal terbaru saat membuat janji.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-700 mb-4">Alur Pelayanan Pasien</h3>
+                    <ol class="list-decimal list-inside text-lg leading-relaxed space-y-2 p-4 bg-light-green rounded-lg shadow-sm">
+                        <li><strong>Pendaftaran:</strong> Pasien mendaftar di bagian pendaftaran, mengisi data diri, dan memilih poli/layanan yang dituju.</li>
+                        <li><strong>Pemeriksaan Awal:</strong> Pasien akan diukur tanda-tanda vital (tekanan darah, suhu, dll.) oleh perawat.</li>
+                        <li><strong>Konsultasi Dokter:</strong> Pasien masuk ke ruang poli untuk konsultasi dan pemeriksaan oleh dokter.</li>
+                        <li><strong>Tindakan Medis/Penunjang:</strong> Jika diperlukan, dokter akan merujuk untuk tindakan medis lebih lanjut (misal: lab, radiologi) atau resep obat.</li>
+                        <li><strong>Pembayaran & Obat:</b> Pasien melakukan pembayaran di kasir dan mengambil obat di farmasi (jika ada resep).</li>
+                        <li><strong>Pulang/Rawat Inap:</strong> Pasien dapat pulang atau disarankan rawat inap sesuai kondisi medis.</li>
+                    </ol>
+                    <p class="text-sm text-gray-600 mt-4 italic">Untuk keadaan darurat, pasien akan langsung ditangani di UGD.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="antrian-online" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Antrian Online</h2>
+            <div class="text-center p-6 bg-light-green rounded-lg shadow-inner">
+                <p class="text-lg leading-relaxed mb-4">Tekan tombol di bawah ini untuk mendapatkan nomor antrian Anda.</p>
+                <div class="mb-6">
+                    <p class="text-2xl font-bold text-primary-green">Nomor Antrian Anda:</p>
+                    <p id="queueNumberDisplay" class="text-6xl font-extrabold text-dark-green mt-2">0</p>
+                </div>
+                <button id="getQueueNumberButton" class="inline-block bg-primary-green text-white px-8 py-4 rounded-full text-xl font-semibold hover:bg-dark-green transition duration-300 shadow-lg transform hover:scale-105">
+                    Ambil Nomor Antrian
+                </button>
+                <button id="resetQueueButton" class="inline-block bg-red-500 text-white px-8 py-4 rounded-full text-xl font-semibold hover:bg-red-700 transition duration-300 shadow-lg transform hover:scale-105 mt-4 md:mt-0 md:ml-4">
+                    Reset Antrian
+                </button>
+                <p class="text-sm text-gray-600 mt-4 italic">Nomor antrian akan bertambah setiap kali tombol "Ambil Nomor Antrian" ditekan dan tersimpan secara lokal di browser Anda. Gunakan "Reset Antrian" untuk memulai dari 0.</p>
+            </div>
+        </section>
+
+        <section id="kontak" class="page-section">
+            <h2 class="text-3xl font-bold text-primary-green mb-6 text-center">Hubungi Kami</h2>
+            <div class="grid md:grid-cols-2 gap-8 text-lg leading-relaxed">
+                <div class="p-6 bg-light-green rounded-lg shadow-sm">
+                    <h3 class="font-semibold text-xl text-primary-green mb-3">Informasi Kontak</h3>
+                    <p class="mb-2"><i class="fas fa-map-marker-alt text-dark-green mr-2"></i> <strong>Alamat:</strong> Jl. Cimanuk No. 08 Desa Sukagalih Kecamatan Tarogong Kidul Kabupaten Garut - Jawa Barat 44151</p>
+                    <p class="mb-2"><i class="fas fa-map-pin text-dark-green mr-2"></i> <strong>Koordinat:</strong> -7.203943001013036, 107.88823731477543</p>
+                    <p class="mb-2"><i class="fas fa-phone-alt text-dark-green mr-2"></i> <strong>Telepon:</strong> <a href="tel:+622627291008" class="text-blue-600 hover:underline">(0262) 7291008</a></p>
+                    <p class="mb-2"><i class="fas fa-whatsapp text-dark-green mr-2"></i> <strong>WhatsApp:</strong> <a href="https://wa.me/6282262391212" target="_blank" class="text-blue-600 hover:underline">082262391212</a></p>
+                    <p class="mb-2"><i class="fab fa-instagram text-dark-green mr-2"></i> <strong>Instagram:</strong> <a href="https://www.instagram.com/klinikutamamc" target="_blank" class="text-blue-600 hover:underline">@klinikutamamc</a></p>
+                    <p class="mb-2"><i class="fab fa-tiktok text-dark-green mr-2"></i> <strong>TikTok:</strong> <a href="https://www.tiktok.com/@klinikutamamc" target="_blank" class="text-blue-600 hover:underline">@klinikutamamc</a></p>
+                    <p class="mb-2"><i class="fas fa-envelope text-dark-green mr-2"></i> <strong>Email:</strong> <a href="mailto:mmc.utama@gmail.com" class="text-blue-600 hover:underline">mmc.utama@gmail.com</a></p>
+                    <p><i class="fas fa-clock text-dark-green mr-2"></i> <strong>Jam Kerja:</strong> Pelayanan 24 Jam Nonstop</p>
+                </div>
+                <div class="p-6 bg-light-green rounded-lg shadow-sm">
+                    <h3 class="font-semibold text-xl text-primary-green mb-3">Kirim Pesan kepada Kami</h3>
+                    <form id="contactForm" class="space-y-4">
+                        <div>
+                            <label for="contact_name" class="block text-lg font-medium text-gray-700 mb-1">Nama Anda</label>
+                            <input type="text" id="contact_name" name="contact_name" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                        </div>
+                        <div>
+                            <label for="contact_email" class="block text-lg font-medium text-gray-700 mb-1">Email Anda</label>
+                            <input type="email" id="contact_email" name="contact_email" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg">
+                        </div>
+                        <div>
+                            <label for="contact_message" class="block text-lg font-medium text-gray-700 mb-1">Pesan Anda</label>
+                            <textarea id="contact_message" name="contact_message" rows="4" class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-green focus:border-primary-green sm:text-lg"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-primary-green text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-dark-green transition duration-300 shadow-md">Kirim Pesan</button>
+                    </form>
+                    <p class="text-center text-sm text-gray-600 mt-4"> *Catatan: Formulir ini adalah contoh frontend. Untuk fungsionalitas pengiriman data, Anda memerlukan layanan backend. </p>
+                </div>
+            </div>
+            <div class="mt-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Lokasi Kami</h3>
+                <!-- Google Maps Embed - Using coordinates for Klinik Utama Mahesa Medical Center -->
+                <div class="rounded-xl overflow-hidden shadow-md border border-gray-200">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.557457007775!2d107.88823731477543!3d-7.203943001013036!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f18!3m3!1m2!1s0x2e68b13d2f2c8d2d%3A0x8d5c7f8a7e0c0b0!2sKlinik%20Utama%20Mahesa%20Medical%20Center!5e0!3m2!1sen!2sid!4v1719650000000!5m2!1sen!2sid"
+                        width="100%"
+                        height="450"
+                        style="border:0;"
+                        allowfullscreen=""
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+                <div class="text-center mt-4">
+                    <!-- Updated link to directly open Google Maps to the clinic's place page using search query -->
+                    <a href="https://www.google.com/maps/search/Klinik+Utama+Mahesa+Medical+Center+Jl.+Cimanuk+No.+08+Desa+Sukagalih+Kecamatan+Tarogong+Kidul+Kabupaten+Garut+Jawa+Barat+44151" target="_blank" class="inline-block bg-primary-green text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-dark-green transition duration-300 shadow-md">Lihat di Google Maps</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark-green text-white p-6 text-center shadow-inner">
+        <div class="container mx-auto">
+            <p>© 2025 Klinik Utama Mahesa Medical Center. Semua Hak Dilindungi.</p>
+            <div class="flex justify-center space-x-6 mt-4">
+                <a href="#" class="text-white hover:text-accent-yellow transition duration-300"><i class="fab fa-facebook-f text-xl"></i></a>
+                <a href="https://www.instagram.com/klinikutamamc" target="_blank" class="text-white hover:text-accent-yellow transition duration-300"><i class="fab fa-instagram text-xl"></i></a>
+                <a href="https://www.tiktok.com/@klinikutamamc" target="_blank" class="text-white hover:text-accent-yellow transition duration-300"><i class="fab fa-tiktok text-xl"></i></a>
+                <a href="#" class="text-white hover:text-accent-yellow transition duration-300"><i class="fab fa-twitter text-xl"></i></a>
+                <a href="#" class="text-white hover:text-accent-yellow transition duration-300"><i class="fab fa-linkedin-in text-xl"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal Structure for Messages -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalTitle" class="text-2xl font-bold mb-4"></h2>
+            <p id="modalMessage" class="text-lg"></p>
+        </div>
+    </div>
+
+    <script>
+        // Fungsi untuk menampilkan pesan pop-up (menggunakan alert sebagai fallback jika modal tidak ada)
+        function showMessage(title, message) {
+            const modal = document.getElementById('messageModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const closeButton = document.querySelector('.close-button');
+
+            if (modal && modalTitle && modalMessage && closeButton) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modal.style.display = 'flex'; // Use flex to center content
+
+                closeButton.onclick = function() {
+                    modal.style.display = 'none';
+                }
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                }
+            } else {
+                // Fallback to alert if modal elements are not found
+                alert(`${title}\n\n${message}`);
+            }
+        }
+
+        // Fungsi untuk menampilkan bagian halaman yang sesuai
+        function showSection(targetId) {
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            const activeSection = document.getElementById(targetId);
+            if (activeSection) {
+                activeSection.classList.add('active');
+                // Scroll ke bagian yang aktif dengan efek smooth
+                activeSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inisialisasi Navigasi Halaman
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.dataset.target;
+                    showSection(targetId);
+                });
+            });
+
+            // Tampilkan halaman awal berdasarkan hash URL atau default ke 'beranda'
+            const initialHash = window.location.hash.substring(1); // Remove '#'
+            if (initialHash) {
+                showSection(initialHash);
+            } else {
+                showSection('beranda'); // Tampilkan bagian 'beranda' secara default
+            }
+
+            // --- Gallery Slider Functionality ---
+            const sliderWrapper = document.querySelector('.slider-wrapper');
+            const sliderItems = document.querySelectorAll('.slider-item');
+            const prevButton = document.querySelector('.slider-nav-button.prev');
+            const nextButton = document.querySelector('.slider-nav-button.next');
+            const sliderDotsContainer = document.querySelector('.slider-dots');
+            let currentIndex = 0;
+
+            const updateSlider = () => {
+                const offset = -currentIndex * 100;
+                sliderWrapper.style.transform = `translateX(${offset}%)`;
+                updateDots();
+            };
+
+            const updateDots = () => {
+                sliderDotsContainer.innerHTML = ''; // Clear existing dots
+                sliderItems.forEach((_, index) => {
+                    const dot = document.createElement('span');
+                    dot.classList.add('slider-dot');
+                    if (index === currentIndex) {
+                        dot.classList.add('active');
+                    }
+                    dot.addEventListener('click', () => {
+                        currentIndex = index;
+                        updateSlider();
+                    });
+                    sliderDotsContainer.appendChild(dot);
+                });
+            };
+
+            prevButton.addEventListener('click', () => {
+                currentIndex = (currentIndex > 0) ? currentIndex - 1 : sliderItems.length - 1;
+                updateSlider();
+            });
+
+            nextButton.addEventListener('click', () => {
+                currentIndex = (currentIndex < sliderItems.length - 1) ? currentIndex + 1 : 0;
+                updateSlider();
+            });
+
+            // Initial slider setup
+            updateSlider();
+
+            // Auto-slide
+            setInterval(() => {
+                currentIndex = (currentIndex < sliderItems.length - 1) ? currentIndex + 1 : 0;
+                updateSlider();
+            }, 5000); // Ganti slide setiap 5 detik
+
+            // --- Registration Form Autosave and Submission ---
+            const registrationForm = document.getElementById('registrationForm');
+            const registrationFormKey = 'registrationFormData'; // Key for localStorage
+
+            // Load saved data on page load
+            const loadRegistrationFormData = () => {
+                const savedData = localStorage.getItem(registrationFormKey);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    for (const key in data) {
+                        const inputElement = registrationForm.elements[key];
+                        if (inputElement) {
+                            inputElement.value = data[key];
+                        }
+                    }
+                    console.log('Data pendaftaran dimuat dari localStorage.');
+                }
+            };
+
+            // Save data on input change
+            const saveRegistrationFormData = () => {
+                const formData = new FormData(registrationForm);
+                const data = Object.fromEntries(formData.entries());
+                localStorage.setItem(registrationFormKey, JSON.stringify(data));
+                console.log('Data pendaftaran disimpan otomatis ke localStorage.');
+            };
+
+            if (registrationForm) {
+                loadRegistrationFormData(); // Load data when the form is available
+                registrationForm.addEventListener('input', saveRegistrationFormData); // Save on any input change
+
+                registrationForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(registrationForm);
+                    const data = Object.fromEntries(formData.entries());
+                    console.log('Data Pendaftaran Dikirim (Simulasi):', data);
+
+                    showMessage('Pendaftaran Berhasil!', 'Terima kasih, data pendaftaran Anda telah kami terima. (Data ini hanya tersimpan di browser Anda secara lokal).');
+                    registrationForm.reset(); // Clear form fields
+                    localStorage.removeItem(registrationFormKey); // Clear autosaved data after submission
+                });
+            }
+
+            // --- Contact Form Simulation (Frontend only) ---
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    showMessage('Pesan Terkirim!', 'Pesan Anda telah terkirim! (Ini adalah simulasi frontend. Data tidak disimpan.)');
+                    contactForm.reset();
+                });
+            }
+
+            // --- Antrian Online Button Functionality with localStorage ---
+            const getQueueNumberButton = document.getElementById('getQueueNumberButton');
+            const resetQueueButton = document.getElementById('resetQueueButton');
+            const queueNumberDisplay = document.getElementById('queueNumberDisplay');
+            const queueLocalStorageKey = 'currentQueueNumber'; // Key for localStorage
+
+            let currentQueueNumber = 0;
+
+            // Load queue number from localStorage on page load
+            const loadQueueNumber = () => {
+                const savedQueue = localStorage.getItem(queueLocalStorageKey);
+                if (savedQueue !== null) {
+                    currentQueueNumber = parseInt(savedQueue, 10);
+                } else {
+                    currentQueueNumber = 0; // Default to 0 if no saved data
+                }
+                queueNumberDisplay.textContent = currentQueueNumber;
+                console.log('Nomor antrian dimuat dari localStorage:', currentQueueNumber);
+            };
+
+            // Save queue number to localStorage
+            const saveQueueNumber = () => {
+                localStorage.setItem(queueLocalStorageKey, currentQueueNumber);
+                console.log('Nomor antrian disimpan ke localStorage:', currentQueueNumber);
+            };
+
+            if (getQueueNumberButton && queueNumberDisplay) {
+                loadQueueNumber(); // Load initial number
+
+                getQueueNumberButton.addEventListener('click', () => {
+                    currentQueueNumber++; // Increment the number
+                    queueNumberDisplay.textContent = currentQueueNumber; // Update the display
+                    saveQueueNumber(); // Save to localStorage
+                    showMessage('Nomor Antrian Anda', `Nomor antrian Anda adalah: ${currentQueueNumber}.`);
+                });
+
+                if (resetQueueButton) {
+                    resetQueueButton.addEventListener('click', () => {
+                        currentQueueNumber = 0; // Reset to 0
+                        queueNumberDisplay.textContent = currentQueueNumber; // Update display
+                        saveQueueNumber(); // Save reset value to localStorage
+                        showMessage('Antrian Direset', 'Nomor antrian telah direset ke 0.');
+                    });
+                }
+            }
+
+        }); // Akhir dari DOMContentLoaded
+    </script>
+</body>
+</html>
